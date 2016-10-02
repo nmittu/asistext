@@ -90,7 +90,25 @@ if(isset($_POST["Body"])){
 		$json = json_decode($string, true);
 		if (isset($json["query"]["pages"])){
 			foreach($json["query"]["pages"] as $page){
-				echo $page["extract"];
+				$chunks = explode("||||",wordwrap($page["extract"],155,"||||",false));
+				$total = count($chunks);
+
+
+				$i = 0;
+				foreach($chunks as $page_ => $chunk){
+					if ($i != 0){
+						echo "<Message>";
+					}
+
+					$message = sprintf("(%d/%d) %s",$i+1,$total,$chunk);
+					
+					echo $message."</Message>";
+					$i = $i + 1;
+				}
+
+				echo "</Response>";
+				die;
+				
 				break;
 			}
 		}
