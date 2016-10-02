@@ -1,0 +1,9 @@
+<Response>
+<Say voice="alice">
+I am calling you as you requested.
+</Say>
+<Pause length="1"/>
+<Say voice="alice">
+Thank you for using AsisText.
+</Say>
+</Response>
