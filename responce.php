@@ -131,6 +131,15 @@ if(isset($_POST["Body"])){
 		
 		break;
 
+	case "quote":
+		if(strtolower($data[1]) == "rand"){
+			$string = file_get_contents("http://quotesondesign.com/wp-json/posts?filter[orderby]=rand&filter[posts_per_page]=1");
+			$json = json_decode($string, true);
+			echo $json[0]["title"]." - ";
+			echo html_entity_decode(strip_tags($json[0]["content"]));
+		}
+		break;
+
 	default:
 		echo "Invalid Responce";
 	}
