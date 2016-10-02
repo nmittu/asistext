@@ -1,6 +1,8 @@
 <Response>
    	<Message><?php
 
+require("html2text/html2text.php");
+
 function calculate_string( $mathString )    {
     $mathString = trim($mathString);     // trim white spaces
     $mathString = ereg_replace ('[^0-9\+-\*\/\(\) ]', '', $mathString);    // remove any non-numbers chars; exception for math operators
@@ -44,6 +46,13 @@ if(isset($_POST["Body"])){
 			
 			echo "Ok I will call.";
 			
+		}else if(strtolower($data[2]) == "in"){
+			exec('echo "php /var/www/html/call.php '."+1".$data[1].'" | at now + '.$data[3]." ".$data[4]);
+			echo "Ok I will call.";
+		}
+		else{
+			exec('php /var/www/html/requestCostumCall.php '."+1".$data[1].' "'.substr($_POST["Body"], 15).'"');
+			echo "Ok I will call.";
 		}
 		break;
 
@@ -119,10 +128,34 @@ if(isset($_POST["Body"])){
 		echo substr($_POST["Body"], 5);
 		break;
 
+	case "news":
+		$str = file_get_contents("https://newsapi.org/v1/articles?source=google-news&apiKey=10cbdb4a74324e67bd2b5b442430b322");
+		$json = json_decode($str, true);
+
+		$i = 0;
+		foreach($json["articles"] as $article){
+			if($i == 0){
+				echo $article["title"]."\n\n".$article["description"]."\n\n".$article["url"];
+			}else{
+				exec("php /var/www/html/text.php ".$_POST["From"].' "'.$article["title"]."\n\n".$article["description"]."\n\n".$article["url"].'"');
+			}
+			$i = $i+1;
+			if($i >= 5){
+				break;
+			}
+		}
+
+		break;
+		
+
 	case "text":
 		if (strtolower($data[1]) == "in"){
-			exec('echo "php /var/www/html/text.php '.$_POST["From"].' \"'."This your text you asked for.".'\"" | at now + '.$data[2]." ".$data[3]);
+			exec('echo "php /var/www/html/text.php '.$_POST["From"].' \"'."This the text you requested.".'\"" | at now + '.$data[2]." ".$data[3]);
 			
+			echo "Ok I will send the text.";
+			
+		}else if(strtolower($data[2]) == "in"){
+			exec('echo "php /var/www/html/text.php '."+1".$data[1].' \"'."This the text you requested.".'\"" | at now + '.$data[3]." ".$data[4]);
 			echo "Ok I will send the text.";
 			
 		}else{
@@ -146,6 +179,43 @@ if(isset($_POST["Body"])){
 		exec('php /var/www/html/requestCostumCall.php '.$_POST["From"].' "'.$str.'"');
 		echo "Calling";
 		break;
+
+	case "web":
+		$url = $data[1];
+		$str = Html2Text\Html2Text::convert(file_get_contents($url));
+
+
+
+		$chunks = explode("||||",wordwrap($str,155,"||||",false));
+		$total = count($chunks);
+
+
+		$i = 0;
+		foreach($chunks as $page_ => $chunk){
+			if ($i != 0){
+				echo "<Message>";
+			}
+
+			$message = sprintf("(%d/%d) %s",$i+1,$total,$chunk);
+			
+			echo $message."</Message>";
+			$i = $i + 1;
+		}
+
+
+		echo "</Response>";
+		die;
+		
+		break;
+
+	case "stocks":
+		$q = $data[1];
+		$str = file_get_contents("http://finance.yahoo.com/d/quotes.csv?s=".$q."&f=l1c1p2hg");
+		$array = explode(",", $str);
+
+		echo "Price - ".$array[0]."\nChange In Price - ".$array[1]."\nPercent - ".str_replace('"', "", $array[2])."\nHigh - ".$array[3]."\nLow - ".$array[3];
+		break;
+		
 
 	case "commands":
 		echo "weather [zip code] or [city/state]\ncall in [1 minute(s)]\nmath [1+1]\nimage of [description]\ndefine [word]\nthesaurus [word]\nwiki [search]\necho [anything]\ntext in [1 minute(s)]\ntext [phone-number message]\nquote rand\nsay [anything]";
