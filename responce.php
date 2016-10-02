@@ -19,6 +19,8 @@ if(isset($_POST["Body"])){
 		$location = $data[2];
 		if (strtolower($data[1]) != "in"){
 			$location = $data[1];
+		}else if ($data[1] == null || $data[1] == "" || $data[1] == " " || !isset($data[1])){
+			$location = $_POST["FromZip"];
 		}
 
 		$string = file_get_contents("http://api.wunderground.com/api/1611a35c86206b42/conditions/lang:EN/q/".$location.".json");
@@ -28,7 +30,6 @@ if(isset($_POST["Body"])){
 			echo $json["current_observation"]["weather"];
 		}else{
 			echo "Format: Weather in [zip code] or [State/City]";
-			die;
 		}
 
 		if(isset($json["current_observation"]["temperature_string"])){
@@ -140,6 +141,15 @@ if(isset($_POST["Body"])){
 		}
 		break;
 
+	case "say":
+		$str = substr($_POST["Body"], 3);
+		exec('php /var/www/html/requestCostumCall.php '.$_POST["From"].' "'.$str.'"');
+		echo "Calling";
+		break;
+
+	case "commands":
+		echo "weather [zip code] or [city/state]\ncall in [1 minute(s)]\nmath [1+1]\nimage of [description]\ndefine [word]\nthesaurus [word]\nwiki [search]\necho [anything]\ntext in [1 minute(s)]\ntext [phone-number message]\nquote rand\nsay [anything]";
+		break;
 	default:
 		echo "Invalid Responce";
 	}
